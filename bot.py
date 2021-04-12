@@ -8,7 +8,6 @@ import json
 import asyncio
 import requests
 import json
-from pprint import pprint
 import math
 from mojang import MojangAPI
 
