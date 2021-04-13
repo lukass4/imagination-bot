@@ -26,7 +26,6 @@ def is_bot_admin(ctx):
 
 @client.command()
 async def verify(ctx, user):
-    await ctx.channel.purge(limit=1)
     if not user == None:
        
         uuid = MojangAPI.get_uuid(user)
@@ -111,7 +110,6 @@ async def verify_error(ctx, error):
 
 @client.command()
 async def qverify(ctx, user):
-    await ctx.channel.purge(limit=1)
     def sw_xp_to_lvl(xp):
         xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
         if xp >= 15000:
@@ -160,7 +158,6 @@ async def uuid_error(ctx, error):
 
 @client.command()
 async def bedwars(ctx, user):
-    await ctx.channel.purge(limit=1)
     uuid = MojangAPI.get_uuid(user)
     url = f"https://api.hypixel.net/player?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&uuid={uuid}"
     DATA = requests.get(url).json()
@@ -191,10 +188,6 @@ async def bedwars(ctx, user):
     except KeyError:
         bedwars_final_deaths = 0
     try:
-        bedwars_deaths = DATA["player"]["stats"]["Bedwars"]["deaths_bedwars"]
-    except KeyError:
-        bedwars_deaths = 0
-    try:
         bedwars_wins = DATA["player"]["stats"]["Bedwars"]["wins_bedwars"]
     except KeyError:
         bedwars_wins = 0
@@ -206,7 +199,7 @@ async def bedwars(ctx, user):
     embedVar.add_field(name="Winstreak", value=f"{winstreak}", inline=False)
     embedVar.add_field(name="Losses", value=f"{bedwars_losses}", inline=False)
     embedVar.add_field(name="Final Deaths", value=f"{bedwars_final_deaths}", inline=False)
-    embedVar.add_field(name="Deaths", value=f"{bedwars_level}", inline=False)
+    embedVar.add_field(name="Deaths", value=f"{bedwars_deaths}", inline=False)
     embedVar.add_field(name="Plancke", value=f"<https://plancke.io/hypixel/player/stats/{user}#BedWars>", inline=False)
     await ctx.send(embed=embedVar)
 
