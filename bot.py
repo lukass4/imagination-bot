@@ -331,5 +331,5 @@ async def apiurl(ctx):
 
 
 
-client.run("ODMxMjIwMDMxMzU3NTgzNDUw.YHSD-g.Mk9aO6IxED6psL9tEuAfPFpCDA0")
+client.run(BOT_TOKEN)
 
