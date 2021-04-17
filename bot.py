@@ -12,8 +12,8 @@ import math
 from mojang import MojangAPI
 from datetime import datetime
 
-PREFIX = ","
-BOT_TOKEN = "ODMxMjIwMDMxMzU3NTgzNDUw.YHSD-g.Mk9aO6IxED6psL9tEuAfPFpCDA0"
+PREFIX = "/"
+BOT_TOKEN = "ODMwMTIwNjc5NDc5MTgxMzEz.YHCEIA.kBkWUQlLUV4kfQ5MVTBkKD7xAag"
 
 intents = discord.Intents(messages=True, guilds=True)
 intents.members = True
