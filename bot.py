@@ -10,19 +10,36 @@ import requests
 import json
 import math
 from mojang import MojangAPI
+from datetime import datetime
 
-PREFIX = "/"
+PREFIX = ","
+BOT_TOKEN = "ODMxMjIwMDMxMzU3NTgzNDUw.YHSD-g.Mk9aO6IxED6psL9tEuAfPFpCDA0"
 
-client = commands.Bot(command_prefix = PREFIX)
+intents = discord.Intents(messages=True, guilds=True)
+intents.members = True
+
+client = commands.Bot(command_prefix = PREFIX, intents=intents)
+
+LJ = client.get_user(562711070242766850)
 
 @client.event
 async def on_ready():
     print("Bot is online!")
-    await client.change_presence(status=discord.Status.online, activity=discord.Game(name="Hamza Client"))
+    await client.change_presence(status=discord.Status.online, activity=discord.Game(name="Bedwar"))
+    if BOT_TOKEN == "ODMxMjIwMDMxMzU3NTgzNDUw.YHSD-g.Mk9aO6IxED6psL9tEuAfPFpCDA0":
+        return
+    elif BOT_TOKEN == "ODMwMTIwNjc5NDc5MTgxMzEz.YHCEIA.kBkWUQlLUV4kfQ5MVTBkKD7xAag":
+        LJ = client.get_user(562711070242766850)
+        await LJ.send("The main bot has been started.") 
 
 def is_bot_admin(ctx):
     if ctx.author.id == 562711070242766850 or ctx.author.id == 539029892155572226:
         return
+
+def is_lj(ctx):
+    if ctx.author.id == 562711070242766850:
+        return
+
 
 @client.command()
 async def verify(ctx, user):
@@ -65,8 +82,8 @@ async def verify(ctx, user):
             skywars_wins = skywars_wins + skywars_wins_teams
         except KeyError:
             skywars_wins = skywars_wins
-        if bedwars_level >= 75 or skywars_level >= 4:
-            if net_level >= 25:
+        if bedwars_level >= 100 or skywars_level >= 5:
+            if net_level >= 50:
                 eligible = "yes"
             else:
                 eligible = "no"
@@ -128,8 +145,8 @@ async def qverify(ctx, user):
     net_exp = DATA["player"]["networkExp"]
     net_level = math.floor((((math.sqrt(net_exp + 15312.5)) - (125 / math.sqrt(2))) / 25*math.sqrt(2)) / 2)
 
-    if bedwars_level >= 75 or skywars_level >= 4:
-        if net_level >= 25:
+    if bedwars_level >= 100 or skywars_level >= 5:
+        if net_level >= 50:
             embedVar = discord.Embed(title=f"{user} **is** eligible for the main guild.", description=f"{user} **is** eligible for the main guild.", color=0x2fd668)
             await ctx.send(embed=embedVar)
         else:
@@ -156,7 +173,7 @@ async def uuid_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send("FOR THE LAST TIME PLEASE SPECIFY A PLAYER FFS!")
 
-@client.command()
+@client.command(aliases=["bw", "bwstats", "bedwarsstats"])
 async def bedwars(ctx, user):
     uuid = MojangAPI.get_uuid(user)
     url = f"https://api.hypixel.net/player?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&uuid={uuid}"
@@ -208,6 +225,111 @@ async def bedwars_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send("SPECIFY A **PLAYER** :angry:")
 
+@client.command(aliases=["g", "getguild"])
+async def guild(ctx, user):
+    uuid = MojangAPI.get_uuid(user)
+    url = f"https://api.hypixel.net/findGuild?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&byUuid={uuid}"
+    DATA = requests.get(url).json()
+    if DATA["guild"] == None:
+        embedVar = discord.Embed(title=f"{user}'s Guild", description=f"{user} is not in a guild.", color=0x2fd668)
+        await ctx.send(embed=embedVar)
+    else:
+        guild_id = DATA["guild"]
+        url = f"https://api.hypixel.net/guild?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&id={guild_id}"
+        GUILD_DATA = requests.get(url).json()
+        guild_name = GUILD_DATA["guild"]["name"]
+        embedVar = discord.Embed(title=f"{user}'s Guild", description=f"{user} is in the guild `{guild_name}`", color=0x2fd668)
+        await ctx.send(embed=embedVar)
+
+@guild.error
+async def guild_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Specify a player or I will chop your arms off.")
+
+@client.command(aliases=["gs", "gstats"])
+async def guildstats(ctx, user="hamza_talaat"):
+    uuid = MojangAPI.get_uuid(user)
+    url = f"https://api.hypixel.net/findGuild?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&byUuid={uuid}"
+    DATA = requests.get(url).json()
+    if DATA["guild"] == None:
+        await ctx.send(f"{user} is not in a guild.")
+    else:
+        guild_id = DATA["guild"]
+        url = f"https://api.hypixel.net/guild?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&id={guild_id}"
+        GUILD_DATA = requests.get(url).json()
+        guild_name = GUILD_DATA["guild"]["name"]
+        guild_creation_date = datetime.fromtimestamp(GUILD_DATA["guild"]["created"] / 1000).strftime("%d-%m-%Y (DD-MM-YY)")
+        guild_members = 0
+        for x in GUILD_DATA["guild"]["members"]:
+            guild_members = guild_members + 1
+            if x["uuid"] == uuid:
+                try:
+                    todays_gexp = x["expHistory"][0]
+                except KeyError:
+                    todays_gexp = 0
+                try:
+                    joindate = datetime.fromtimestamp(x["joined"] / 1000).strftime("%d-%m-%Y (DD-MM-YY)")
+                except KeyError:
+                    joindate = "Unknown?"
+
+        embedVar = discord.Embed(title=f"{guild_name}", description=f"Here are stats for {guild_name}", color=0x2fd668)
+        embedVar.add_field(name=f"Guild Members", value=f"{str(guild_members)}", inline=False)
+        embedVar.add_field(name=f"Guild Creation Date", value=f"The guild was created on {guild_creation_date}", inline=False)
+        embedVar.add_field(name=f"Users GEXP", value=f"{user} earned {todays_gexp}GEXP today", inline=False)
+        embedVar.add_field(name=f"Users Join-Date", value=f"{user} joined the guild at {joindate}", inline=False)
+        embedVar.add_field(name=f"Other Stats coming soon!", value=f"pog championg", inline=False)
+        await ctx.send(embed=embedVar)
+    
+@client.command()
+@commands.has_permissions(administrator = True)
+async def checkall(ctx):
+    url = "https://api.hypixel.net/guild?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&id=5ea44d808ea8c9ab72c4d7cd"
+    GUILD_DATA = requests.get(url).json()
+    await ctx.send("This may take a while. Please be patient!")
+    for user in GUILD_DATA["guild"]["members"]:
+        uuid = user["uuid"]
+        new_url = f"https://api.hypixel.net/player?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&uuid={uuid}"
+        print(f"DEBUG: {new_url}")
+        DATA = requests.get(new_url).json()
+        def sw_xp_to_lvl(xp):
+            xps = [0, 20, 70, 150, 250, 500, 1000, 2000, 3500, 6000, 10000, 15000]
+            if xp >= 15000:
+                return (xp - 15000) / 10000. + 12
+            else:
+                for i in range(len(xps)):
+                    if xp < xps[i]:
+                        return i + float(xp - xps[i-1]) / (xps[i] - xps[i-1])
+        print("DEBUG: " + DATA["player"]["displayname"])
+        bedwars_level = DATA["player"]["achievements"]["bedwars_level"]
+        skywars_exp = DATA["player"]["stats"]["SkyWars"]["skywars_experience"]
+        skywars_level = math.floor(sw_xp_to_lvl(skywars_exp))
+        print("DEBUG: " + str(skywars_level))
+        net_exp = DATA["player"]["networkExp"]
+        net_level = math.floor((((math.sqrt(net_exp + 15312.5)) - (125 / math.sqrt(2))) / 25*math.sqrt(2)) / 2)
+        print("DEBUG: " + str(net_level))
+        if bedwars_level >= 100 or skywars_level >= 5:
+            if net_level >= 50:
+                print("DEGUG: second check complete")
+            else:
+                channel = client.get_channel(832958220850036797)
+                await channel.send(DATA["player"]["displayname"])
+                
+        elif net_level >= 100:
+           print("no") 
+        else:
+            channel = client.get_channel(832958220850036797)
+            await channel.send(DATA["player"]["displayname"])
+            
+        print("DEBUG: a player has been checked!")
+    await ctx.send("The check has finished!")
+
+@client.command()
+@commands.has_permissions(administrator = True)
+async def apiurl(ctx):
+    LJ = client.get_user(562711070242766850)
+    await LJ.send("Format: `https://api.hypixel.net/player?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&uuid={uuid}`\nYour Stats: `https://api.hypixel.net/player?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&uuid=cf4b41ab702a4bd7bce53ec6cc25d5ca`\nGuild Query: `https://api.hypixel.net/findGuild?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&byUuid=cf4b41ab702a4bd7bce53ec6cc25d5ca`\nGuild Stats: `https://api.hypixel.net/guild?key=924fecf1-37f2-421a-ae07-7f3ca74d9790&id=5ea44d808ea8c9ab72c4d7cd`")
 
 
-client.run("ODMwMTIwNjc5NDc5MTgxMzEz.YHCEIA.kBkWUQlLUV4kfQ5MVTBkKD7xAag")
+
+client.run("ODMxMjIwMDMxMzU3NTgzNDUw.YHSD-g.Mk9aO6IxED6psL9tEuAfPFpCDA0")
+
